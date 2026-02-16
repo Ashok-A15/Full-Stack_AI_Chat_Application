@@ -1,14 +1,23 @@
 import { Link } from "react-router-dom";
 import "./chatList.css";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@clerk/clerk-react";
 
 const ChatList = () => {
+  const { getToken } = useAuth();
+
   const { isLoading, error, data } = useQuery({
-    queryKey: ["repoData"],
-    queryFn: () =>
-      fetch(`${import.meta.env.VITE_API_URL}/api/userchats`, {
-        credentials: "include",
-      }).then((res) => res.json()),
+    queryKey: ["userChats"],
+    queryFn: async () => {
+      const token = await getToken();
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/userchats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error("Failed to fetch user chats");
+      return res.json();
+    },
   });
 
   return (
@@ -21,15 +30,19 @@ const ChatList = () => {
       <hr />
       <span className="title">RECENT CHATS</span>
       <div className="list">
-        {isLoading
-          ? "Loading..."
-          : error
-          ? "Something went wrong!"
-          : data?.map((chat) => (
-              <Link to={`/dashboard/chats/${chat._id}`} key={chat._id}>
-                {chat.title || "MY chat title"}
-              </Link>
-            ))}
+        {isLoading ? (
+          "Loading..."
+        ) : error ? (
+          <span className="error">Something went wrong!</span>
+        ) : data?.length > 0 ? (
+          data.map((chat) => (
+            <Link to={`/dashboard/chats/${chat._id}`} key={chat._id}>
+              {chat.title}
+            </Link>
+          ))
+        ) : (
+          <span className="no-chats">No chats found</span>
+        )}
       </div>
 
       <hr />

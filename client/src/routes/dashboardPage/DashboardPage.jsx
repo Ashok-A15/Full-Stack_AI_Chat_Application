@@ -1,8 +1,10 @@
 import "./dashboardPage.css";
 import { useAuth, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 
 const DashboardPage = () => {
   const { getToken } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -10,24 +12,25 @@ const DashboardPage = () => {
     if (!text) return;
 
     try {
-      // ✅ Get Clerk JWT token for backend
       const token = await getToken({ template: "backend" });
 
       const res = await fetch("http://localhost:3001/api/chats", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // auth header for requireAuth()
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ text }), // backend extracts userId from token
+        body: JSON.stringify({ text }),
       });
 
       if (!res.ok) {
         throw new Error("Failed to send message");
       }
 
-      console.log("✅ Message sent:", text);
-      e.target.reset(); // clear input
+      const data = await res.json();
+      console.log("✅ Chat created:", data.chatId);
+      e.target.reset();
+      navigate(`/dashboard/chats/${data.chatId}`);
     } catch (err) {
       console.error("❌ Error sending message:", err.message);
     }
@@ -68,7 +71,6 @@ const DashboardPage = () => {
             <button type="submit">
               <img src="/arrow.png" alt="send" />
             </button>
-            <UserButton />
           </form>
         </SignedIn>
       </div>

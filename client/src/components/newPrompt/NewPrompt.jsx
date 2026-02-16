@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react"; // ✅ Add useMemo
 import "./newPrompt.css";
 import Upload from "../upload/Upload";
 import { IKImage } from "imagekitio-react";
-import model from "../../lib/gemini"; // ✅ ensure correct export from gemini.js
+import model from "../../lib/gemini";
 import Markdown from "react-markdown";
-import { text } from "framer-motion/client";
+import { useAuth } from "@clerk/clerk-react";
 
-const NewPrompt = () => {
+const NewPrompt = ({ data, id }) => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [img, setImg] = useState({
@@ -16,22 +16,18 @@ const NewPrompt = () => {
     aiData: {}, // { mimeType, data(base64) }
   });
 
-  // ✅ Start a chat session once
-  const chat = model.startChat({
-    history: [
-      {
-        role: "user",
-        parts: [{ text: "Hello, I have 2 dogs in my house" }],
-      },
-      {
-        role: "model",
-        parts: [{ text: "Great to meet you, What would you like to know?" }],
-      },
-    ],
-    generationConfig: {
-      // maxOutputTokens: 200,
-    },
-  });
+  const { getToken } = useAuth();
+
+  // ✅ Memoize chat session to prevent recreation on every render
+  const chat = useMemo(() => {
+    return model.startChat({
+      history:
+        data?.history?.map((m) => ({
+          role: m.role,
+          parts: [{ text: m.parts[0].text }],
+        })) || [],
+    });
+  }, [id, data]); // Restart session only if chat ID or data changes
 
   const endRef = useRef(null);
 
@@ -46,45 +42,52 @@ const NewPrompt = () => {
       let result;
 
       if (Object.entries(img.aiData).length) {
-        // ✅ Text + Image multimodal request
-        result = await chat.sendMessageStream({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: promptText },
-                {
-                  inlineData: {
-                    mimeType: img.aiData.mimeType,
-                    data: img.aiData.data,
-                  },
-                },
-              ],
+        result = await chat.sendMessageStream([
+          promptText,
+          {
+            inlineData: {
+              data: img.aiData.data,
+              mimeType: img.aiData.mimeType,
             },
-          ],
-        });
+          },
+        ]);
       } else {
-        // ✅ Text-only request
         result = await chat.sendMessageStream(promptText);
       }
 
-      // ✅ Collect streaming text
       let accumulatedText = "";
       for await (const chunk of result.stream) {
         const chunkText = chunk.text();
-        console.log(chunkText);
         accumulatedText += chunkText;
+        setAnswer(accumulatedText);
       }
 
-      // reset image after request
+      // ✅ PERSIST TO BACKEND
+      try {
+        const token = await getToken();
+        await fetch(`${import.meta.env.VITE_API_URL}/api/chats/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            question: promptText,
+            answer: accumulatedText,
+            img: img.dbData?.filePath || null,
+          }),
+        });
+        console.log("✅ History persisted to DB");
+      } catch (dbErr) {
+        console.error("❌ DB Persist Error:", dbErr);
+      }
+
       setImg({
         isLoading: false,
         error: "",
         dbData: {},
         aiData: {},
       });
-
-      setAnswer(accumulatedText);
     } catch (error) {
       console.error("Gemini API Error:", error);
     }
@@ -100,7 +103,7 @@ const NewPrompt = () => {
 
   return (
     <>
-      {img.isLoading && <div>Loading...</div>}
+      {img.isLoading && <div className="loading">Uploading image...</div>}
 
       {img.dbData?.filePath && (
         <IKImage
@@ -108,6 +111,7 @@ const NewPrompt = () => {
           path={img.dbData.filePath}
           width={380}
           transformation={[{ width: 380 }]}
+          className="uploadPreview"
         />
       )}
 

@@ -20,7 +20,7 @@ async function listModelsOnce() {
 listModelsOnce();
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",  // use a valid model name (test with the output you got)
+  model: "gemini-1.5-flash",
   safetySettings,
 });
 
