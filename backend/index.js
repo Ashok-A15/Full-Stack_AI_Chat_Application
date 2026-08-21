@@ -22,8 +22,12 @@ const imagekit = new ImageKit({
 const app = express();
 
 // ---------------------- MIDDLEWARE ---------------------- //
-app.use(cors({ origin: CLIENT_URL, credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "ok", message: "AI Chat Backend Running" });
+});
 
 mongoose.set('bufferCommands', false);
 
