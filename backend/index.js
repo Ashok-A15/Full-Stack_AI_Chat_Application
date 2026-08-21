@@ -25,20 +25,39 @@ const app = express();
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
 app.use(express.json());
 
+mongoose.set('bufferCommands', false);
+
 // ---------------------- MONGODB CONNECTION ---------------------- //
 const connectDB = async () => {
   try {
+    if (!MONGO_URI || MONGO_URI.includes("<db_password>")) {
+      console.warn("⚠️ MONGO_URI is missing or contains placeholder '<db_password>'. Please update backend/.env with your valid MongoDB connection string.");
+      return;
+    }
     await mongoose.connect(MONGO_URI);
     console.log("✅ Connected to MongoDB Atlas");
   } catch (err) {
-    console.error("❌ MongoDB connection error details:", err);
-    process.exit(1);
+    console.error("❌ MongoDB connection error details:", err.message);
   }
 };
 
 // ---------------------- ROUTES ---------------------- //
 app.get("/", (_req, res) => {
   res.send("🚀 API is running...");
+});
+
+// Middleware to handle database connection state gracefully
+app.use("/api", (req, res, next) => {
+  if (req.path === "/upload") return next();
+  if (mongoose.connection.readyState !== 1) {
+    if (req.path === "/userchats") {
+      return res.status(200).json([]);
+    }
+    return res.status(503).json({
+      error: "Database not connected. Please set your MongoDB password in backend/.env to save chats.",
+    });
+  }
+  next();
 });
 
 // ---------------------- IMAGEKIT AUTH ---------------------- //
@@ -95,7 +114,7 @@ app.get("/api/userchats", ClerkExpressRequireAuth(), async (req, res) => {
   try {
     const userChats = await UserChats.findOne({ userId });
 
-    if (!userChats) return res.status(404).json({ message: "No chats found" });
+    if (!userChats) return res.status(200).json([]);
 
     res.status(200).json(userChats.chats);
   } catch (err) {
@@ -145,6 +164,26 @@ app.put("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("Error adding message to history!");
+  }
+});
+
+// ---------------------- DELETE CHAT (AUTHENTICATED) ---------------------- //
+app.delete("/api/chats/:id", ClerkExpressRequireAuth(), async (req, res) => {
+  const userId = req.auth.userId;
+  const chatId = req.params.id;
+
+  try {
+    await Chat.deleteOne({ _id: chatId, userId });
+
+    await UserChats.updateOne(
+      { userId },
+      { $pull: { chats: { _id: chatId } } }
+    );
+
+    res.status(200).json({ success: true, message: "Chat deleted" });
+  } catch (err) {
+    console.error("Error deleting chat:", err);
+    res.status(500).send("Error deleting chat!");
   }
 });
 

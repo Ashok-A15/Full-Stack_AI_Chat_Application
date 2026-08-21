@@ -18,38 +18,72 @@
 
 .newForm {
   width: 50%;
-  position: absolute;
-  bottom: 0;
-  background-color: #2c2937;
+  max-width: 720px;
+  position: fixed;
+  bottom: 24px;
+  background-color: rgba(44, 41, 55, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   border-radius: 20px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 0px 20px;
+  gap: 15px;
+  padding: 4px 16px;
+  z-index: 100;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: rgba(147, 112, 219, 0.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 12px rgba(147, 112, 219, 0.2);
+  }
 
   input {
     flex: 1;
-    padding: 20px;
+    padding: 16px 8px;
     border: none;
     outline: none;
     background-color: transparent;
     color: #ececec;
+    font-size: 15px;
   }
 
   button,
   label {
     border-radius: 50%;
-    background-color: #605e68;
+    background-color: #524d63;
     border: none;
     padding: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+
+    &:hover {
+      background-color: #6c6682;
+      transform: scale(1.05);
+    }
 
     img {
       width: 16px;
       height: 16px;
     }
   }
+
+  .voiceBtn {
+    font-size: 13px;
+    color: #fff;
+
+    &.listening {
+      background-color: #e55571;
+      animation: pulse 1.2s infinite;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
 }

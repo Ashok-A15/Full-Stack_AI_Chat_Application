@@ -6,32 +6,107 @@
 
     hr{
         border: none;
-        height: 2px;
-        background-color: #ddd;
-        opacity: 5px;
-        border-radius: 5px;
-        margin: 20px 0px;
+        height: 1px;
+        background-color: #2c2937;
+        margin: 12px 0px;
     }
 
     .title{
         font-weight: 600;
         font-size: 10px;
-        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+        color: #888;
+        margin-bottom: 8px;
+        text-transform: uppercase;
     }
-
 
     .list{
         display: flex;
         flex-direction: column;
-        overflow: scroll;
+        overflow-y: auto;
+        max-height: 160px;
+        gap: 3px;
+        padding-right: 2px;
+
+        &::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #3c3947;
+            border-radius: 3px;
+        }
     }
 
-    a{
-        padding: 10px;
-        border-radius: 10px;
+    .no-chats, .loading-chats, .error {
+        font-size: 12px;
+        color: #777;
+        padding: 6px 4px;
+        font-style: italic;
+    }
 
-        &:hover{
+    .chatItemWrapper {
+        display: flex;
+        align-items: center;
+        position: relative;
+        width: 100%;
+
+        &:hover {
+            .deleteBtn {
+                opacity: 1;
+            }
+        }
+    }
+
+    .chatItemLink {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        padding-right: 28px;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #ddd;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: background-color 0.2s ease, color 0.2s ease;
+
+        &:hover, &.active {
             background-color: #2c2937;
+            color: #fff;
+        }
+
+        .chat-icon {
+            font-size: 12px;
+            opacity: 0.7;
+            flex-shrink: 0;
+        }
+
+        .chat-title-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .deleteBtn {
+        position: absolute;
+        right: 6px;
+        background: transparent;
+        border: none;
+        font-size: 11px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s ease, transform 0.1s ease;
+        padding: 2px 4px;
+        border-radius: 4px;
+
+        &:hover {
+            transform: scale(1.2);
+            background-color: rgba(255, 100, 100, 0.2);
         }
     }
 

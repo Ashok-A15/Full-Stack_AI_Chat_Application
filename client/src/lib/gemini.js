@@ -9,18 +9,10 @@ const safetySettings = [
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
-async function listModelsOnce() {
-  try {
-    const modelList = await genAI.models.list({ pageSize: 10 });
-    console.log("Available models:", modelList.map(m => m.name));
-  } catch (err) {
-    console.error("Error listing models:", err);
-  }
-}
-listModelsOnce();
+
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-2.5-flash",
   safetySettings,
 });
 
