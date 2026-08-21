@@ -25,7 +25,8 @@ const DashboardPage = () => {
       const token = await getToken();
       const promptText = text || "Describe this image";
 
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/chats`, {
+      const API_URL = import.meta.env.VITE_API_URL || "https://full-stack-ai-chat-application.onrender.com";
+      const res = await fetch(`${API_URL}/api/chats`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

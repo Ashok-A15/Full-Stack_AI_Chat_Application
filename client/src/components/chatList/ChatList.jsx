@@ -9,12 +9,14 @@ const ChatList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const API_URL = import.meta.env.VITE_API_URL || "https://full-stack-ai-chat-application.onrender.com";
+
   const handleDeleteChat = async (e, chatId) => {
     e.preventDefault();
     e.stopPropagation();
     try {
       const token = await getToken();
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/chats/${chatId}`, {
+      const res = await fetch(`${API_URL}/api/chats/${chatId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -35,7 +37,7 @@ const ChatList = () => {
     queryKey: ["userChats"],
     queryFn: async () => {
       const token = await getToken();
-      const res = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/userchats`, {
+      const res = await fetch(`${API_URL}/api/userchats`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

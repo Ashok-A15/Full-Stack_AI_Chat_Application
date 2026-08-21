@@ -84,7 +84,8 @@ const NewPrompt = ({ data, id }) => {
       // PERSIST TO BACKEND
       try {
         const token = await getToken();
-        await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/chats/${id}`, {
+        const API_URL = import.meta.env.VITE_API_URL || "https://full-stack-ai-chat-application.onrender.com";
+        await fetch(`${API_URL}/api/chats/${id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

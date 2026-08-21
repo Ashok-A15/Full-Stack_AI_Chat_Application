@@ -16,7 +16,8 @@ const ChatPage = () => {
     queryKey: ['chat', id],
     queryFn: async () => {
       const token = await getToken();
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/chats/${id}`, {
+      const API_URL = import.meta.env.VITE_API_URL || "https://full-stack-ai-chat-application.onrender.com";
+      const res = await fetch(`${API_URL}/api/chats/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
